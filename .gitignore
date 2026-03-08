@@ -49,21 +49,46 @@ tmp/
 *.pem
 *.key
 
-# Documentation (keep only essential)
-IMPLEMENTATION_GUIDE.md
-FEATURES_IMPLEMENTED.md
-DEPLOYMENT_COMPLETE.md
-DEPLOYMENT_QUICK_REFERENCE.md
-AI_BEDROCK_INTEGRATION_COMPLETE.md
-HOW_TO_USE_AI_FEATURE.md
-QUICK_START.md
-AWS_*.md
-ADAPTIVE_QUESTIONS_GUIDE.md
+# Root directory - exclude ALL scripts and test files
+/*.bat
+/*.ps1
+/*.sh
+/*.txt
+/*.html
+/*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!.prettierrc.json
 
-# Kiro internal files (keep only specs)
+# Root directory - exclude ALL markdown except essential
+/*.md
+!README.md
+!CONTRIBUTING.md
+
+# Folders to exclude from root
+/docs/
+/scripts/
+
+# Kiro internal files (keep only design.md, requirements.md, tasks.md)
 .kiro/settings/
 .kiro/steering/
 .kiro/skills/
+.kiro/specs/**/.config.kiro
+.kiro/specs/**/code-review.md
+.kiro/specs/**/execution-plan.md
+.kiro/specs/**/README.md
+.kiro/specs/**/ui-ux-design-system.md
+
+# Backend deployment scripts (keep only essential)
+backend/*.ps1
+backend/*.bat
+backend/*.sh
+backend/response.json
+backend/DEPLOYMENT_README.md
+backend/MANUAL_DEPLOY.md
+backend/FIX_POWERSHELL_POLICY.md
+backend/check-deployment-ready.ps1
 
 # Response files
 response.json
