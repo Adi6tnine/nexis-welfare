@@ -401,10 +401,7 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ## 📞 Contact
 
-For questions or feedback:
-- 📧 Email: [your-email]
-- 🐙 GitHub: [your-github]
-- 🌐 Website: [your-website]
+For questions or feedback about this project, please open an issue on GitHub.
 
 ---
 
