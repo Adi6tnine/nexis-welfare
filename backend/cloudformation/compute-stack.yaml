@@ -1,0 +1,400 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NEXIS Compute Stack - Lambda Functions and Layers'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name for resource naming
+
+  StorageStackName:
+    Type: String
+    Description: Name of the storage stack to import values from
+
+Resources:
+  # Lambda Execution Role for Eligibility Checker
+  EligibilityCheckerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'nexis-eligibility-checker-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: EligibilityCheckerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - Fn::ImportValue: !Sub '${StorageStackName}-KnowledgeBaseBucketArn'
+                  - !Sub
+                    - '${BucketArn}/*'
+                    - BucketArn:
+                        Fn::ImportValue: !Sub '${StorageStackName}-KnowledgeBaseBucketArn'
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                Resource:
+                  - Fn::ImportValue: !Sub '${StorageStackName}-EligibilityResultsTableArn'
+
+  # Lambda Execution Role for AI Explanation
+  AIExplanationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'nexis-ai-explanation-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: AIExplanationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource: !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0'
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub
+                    - '${BucketArn}/*'
+                    - BucketArn:
+                        Fn::ImportValue: !Sub '${StorageStackName}-KnowledgeBaseBucketArn'
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                Resource:
+                  - Fn::ImportValue: !Sub '${StorageStackName}-EligibilityResultsTableArn'
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                Resource:
+                  - Fn::ImportValue: !Sub '${StorageStackName}-ExplanationCacheTableArn'
+
+  # Lambda Execution Role for Chat Assistant
+  ChatAssistantRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'nexis-chat-assistant-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ChatAssistantPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource: !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0'
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - Fn::ImportValue: !Sub '${StorageStackName}-KnowledgeBaseBucketArn'
+                  - !Sub
+                    - '${BucketArn}/*'
+                    - BucketArn:
+                        Fn::ImportValue: !Sub '${StorageStackName}-KnowledgeBaseBucketArn'
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - Fn::ImportValue: !Sub '${StorageStackName}-UserSessionsTableArn'
+
+  # Lambda Execution Role for Profile Manager
+  ProfileManagerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'nexis-profile-manager-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ProfileManagerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Resource:
+                  - Fn::ImportValue: !Sub '${StorageStackName}-UsersTableArn'
+
+  # Lambda Execution Role for Scheme Uploader
+  SchemeUploaderRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'nexis-scheme-uploader-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: SchemeUploaderPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource:
+                  - !Sub
+                    - '${BucketArn}/*'
+                    - BucketArn:
+                        Fn::ImportValue: !Sub '${StorageStackName}-KnowledgeBaseBucketArn'
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - Fn::ImportValue: !Sub '${StorageStackName}-SchemesTableArn'
+
+  # Lambda Function: Eligibility Checker
+  EligibilityCheckerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'nexis-eligibility-checker-${Environment}'
+      Runtime: nodejs18.x
+      Handler: lambda/eligibility-checker/index.handler
+      Role: !GetAtt EligibilityCheckerRole.Arn
+      Timeout: 30
+      MemorySize: 1024
+      Environment:
+        Variables:
+          SCHEMES_BUCKET:
+            Fn::ImportValue: !Sub '${StorageStackName}-KnowledgeBaseBucket'
+          RESULTS_TABLE:
+            Fn::ImportValue: !Sub '${StorageStackName}-EligibilityResultsTable'
+          LOG_LEVEL: INFO
+          ENVIRONMENT: !Ref Environment
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            // Placeholder - actual implementation will be deployed separately
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ message: 'Eligibility Checker Lambda - Placeholder' })
+            };
+          };
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # Lambda Function: AI Explanation
+  AIExplanationFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'nexis-ai-explanation-${Environment}'
+      Runtime: nodejs18.x
+      Handler: index.handler
+      Role: !GetAtt AIExplanationRole.Arn
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          BEDROCK_MODEL_ID: anthropic.claude-3-haiku-20240307-v1:0
+          BEDROCK_REGION: !Ref AWS::Region
+          RESULTS_TABLE:
+            Fn::ImportValue: !Sub '${StorageStackName}-EligibilityResultsTable'
+          SCHEMES_BUCKET:
+            Fn::ImportValue: !Sub '${StorageStackName}-KnowledgeBaseBucket'
+          CACHE_TABLE:
+            Fn::ImportValue: !Sub '${StorageStackName}-ExplanationCacheTable'
+          LOG_LEVEL: INFO
+          ENVIRONMENT: !Ref Environment
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            // Placeholder - actual implementation will be deployed separately
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ message: 'AI Explanation Lambda - Placeholder' })
+            };
+          };
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # Lambda Function: Chat Assistant
+  ChatAssistantFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'nexis-chat-assistant-${Environment}'
+      Runtime: nodejs18.x
+      Handler: index.handler
+      Role: !GetAtt ChatAssistantRole.Arn
+      Timeout: 30
+      MemorySize: 1024
+      Environment:
+        Variables:
+          BEDROCK_MODEL_ID: anthropic.claude-3-haiku-20240307-v1:0
+          KNOWLEDGE_BASE_BUCKET:
+            Fn::ImportValue: !Sub '${StorageStackName}-KnowledgeBaseBucket'
+          SESSIONS_TABLE:
+            Fn::ImportValue: !Sub '${StorageStackName}-UserSessionsTable'
+          MAX_CONTEXT_MESSAGES: '10'
+          LOG_LEVEL: INFO
+          ENVIRONMENT: !Ref Environment
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            // Placeholder - actual implementation will be deployed separately
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ message: 'Chat Assistant Lambda - Placeholder' })
+            };
+          };
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # Lambda Function: Profile Manager
+  ProfileManagerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'nexis-profile-manager-${Environment}'
+      Runtime: nodejs18.x
+      Handler: index.handler
+      Role: !GetAtt ProfileManagerRole.Arn
+      Timeout: 10
+      MemorySize: 512
+      Environment:
+        Variables:
+          USERS_TABLE:
+            Fn::ImportValue: !Sub '${StorageStackName}-UsersTable'
+          LOG_LEVEL: INFO
+          ENVIRONMENT: !Ref Environment
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            // Placeholder - actual implementation will be deployed separately
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ message: 'Profile Manager Lambda - Placeholder' })
+            };
+          };
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # Lambda Function: Scheme Uploader
+  SchemeUploaderFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'nexis-scheme-uploader-${Environment}'
+      Runtime: nodejs18.x
+      Handler: index.handler
+      Role: !GetAtt SchemeUploaderRole.Arn
+      Timeout: 60
+      MemorySize: 512
+      Environment:
+        Variables:
+          SCHEMES_BUCKET:
+            Fn::ImportValue: !Sub '${StorageStackName}-KnowledgeBaseBucket'
+          SCHEMES_TABLE:
+            Fn::ImportValue: !Sub '${StorageStackName}-SchemesTable'
+          LOG_LEVEL: INFO
+          ENVIRONMENT: !Ref Environment
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            // Placeholder - actual implementation will be deployed separately
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ message: 'Scheme Uploader Lambda - Placeholder' })
+            };
+          };
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+Outputs:
+  EligibilityCheckerFunctionArn:
+    Description: ARN of the Eligibility Checker Lambda function
+    Value: !GetAtt EligibilityCheckerFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-EligibilityCheckerFunctionArn'
+
+  AIExplanationFunctionArn:
+    Description: ARN of the AI Explanation Lambda function
+    Value: !GetAtt AIExplanationFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-AIExplanationFunctionArn'
+
+  ChatAssistantFunctionArn:
+    Description: ARN of the Chat Assistant Lambda function
+    Value: !GetAtt ChatAssistantFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ChatAssistantFunctionArn'
+
+  ProfileManagerFunctionArn:
+    Description: ARN of the Profile Manager Lambda function
+    Value: !GetAtt ProfileManagerFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ProfileManagerFunctionArn'
+
+  SchemeUploaderFunctionArn:
+    Description: ARN of the Scheme Uploader Lambda function
+    Value: !GetAtt SchemeUploaderFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-SchemeUploaderFunctionArn'

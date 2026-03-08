@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+*.zip
+lambda.zip
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# AWS
+.aws/
+*.pem
+*.key
+
+# Documentation (keep only essential)
+IMPLEMENTATION_GUIDE.md
+FEATURES_IMPLEMENTED.md
+DEPLOYMENT_COMPLETE.md
+DEPLOYMENT_QUICK_REFERENCE.md
+AI_BEDROCK_INTEGRATION_COMPLETE.md
+HOW_TO_USE_AI_FEATURE.md
+QUICK_START.md
+AWS_*.md
+ADAPTIVE_QUESTIONS_GUIDE.md
+
+# Kiro internal files (keep only specs)
+.kiro/settings/
+.kiro/steering/
+.kiro/skills/
+
+# Response files
+response.json
+
+# OS
+Thumbs.db
+.DS_Store

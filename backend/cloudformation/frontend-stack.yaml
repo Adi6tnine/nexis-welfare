@@ -1,0 +1,175 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NEXIS Frontend Stack - AWS Amplify Configuration'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name for resource naming
+
+  GitHubRepository:
+    Type: String
+    Description: GitHub repository URL (e.g., https://github.com/username/nexis)
+    Default: https://github.com/example/nexis
+
+  GitHubBranch:
+    Type: String
+    Description: GitHub branch to deploy
+    Default: main
+
+  GitHubToken:
+    Type: String
+    Description: GitHub personal access token for repository access
+    NoEcho: true
+
+  APIStackName:
+    Type: String
+    Description: Name of the API stack to import API endpoint
+
+  CustomDomainName:
+    Type: String
+    Description: Custom domain name for the application (optional)
+    Default: ''
+
+Conditions:
+  HasCustomDomain: !Not [!Equals [!Ref CustomDomainName, '']]
+  IsProduction: !Equals [!Ref Environment, 'prod']
+
+Resources:
+  # Amplify App
+  AmplifyApp:
+    Type: AWS::Amplify::App
+    Properties:
+      Name: !Sub 'nexis-${Environment}'
+      Description: NEXIS AI Welfare Guide - Frontend Application
+      Repository: !Ref GitHubRepository
+      AccessToken: !Ref GitHubToken
+      BuildSpec: |
+        version: 1
+        frontend:
+          phases:
+            preBuild:
+              commands:
+                - cd frontend
+                - npm ci
+            build:
+              commands:
+                - npm run build
+          artifacts:
+            baseDirectory: frontend/dist
+            files:
+              - '**/*'
+          cache:
+            paths:
+              - frontend/node_modules/**/*
+      EnvironmentVariables:
+        - Name: VITE_API_ENDPOINT
+          Value:
+            Fn::ImportValue: !Sub '${APIStackName}-APIEndpoint'
+        - Name: VITE_ENVIRONMENT
+          Value: !Ref Environment
+      IAMServiceRole: !GetAtt AmplifyRole.Arn
+      CustomRules:
+        - Source: '</^[^.]+$|\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json)$)([^.]+$)/>'
+          Target: /index.html
+          Status: '200'
+        - Source: /<*>
+          Target: /index.html
+          Status: '404-200'
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # Amplify Branch
+  AmplifyBranch:
+    Type: AWS::Amplify::Branch
+    Properties:
+      AppId: !GetAtt AmplifyApp.AppId
+      BranchName: !Ref GitHubBranch
+      EnableAutoBuild: true
+      EnablePullRequestPreview: !If [IsProduction, false, true]
+      Stage: !If [IsProduction, 'PRODUCTION', 'DEVELOPMENT']
+      EnvironmentVariables:
+        - Name: VITE_API_ENDPOINT
+          Value:
+            Fn::ImportValue: !Sub '${APIStackName}-APIEndpoint'
+        - Name: VITE_ENVIRONMENT
+          Value: !Ref Environment
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # Custom Domain (Optional)
+  AmplifyDomain:
+    Type: AWS::Amplify::Domain
+    Condition: HasCustomDomain
+    Properties:
+      AppId: !GetAtt AmplifyApp.AppId
+      DomainName: !Ref CustomDomainName
+      SubDomainSettings:
+        - Prefix: !If [IsProduction, 'www', !Ref Environment]
+          BranchName: !GetAtt AmplifyBranch.BranchName
+      EnableAutoSubDomain: false
+
+  # IAM Role for Amplify
+  AmplifyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'nexis-amplify-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: amplify.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess-Amplify
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # CloudFront Distribution for Amplify (managed by Amplify)
+  # Note: Amplify automatically creates and manages CloudFront distribution
+
+Outputs:
+  AmplifyAppId:
+    Description: Amplify App ID
+    Value: !GetAtt AmplifyApp.AppId
+    Export:
+      Name: !Sub '${AWS::StackName}-AmplifyAppId'
+
+  AmplifyAppArn:
+    Description: Amplify App ARN
+    Value: !GetAtt AmplifyApp.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-AmplifyAppArn'
+
+  AmplifyDefaultDomain:
+    Description: Amplify default domain
+    Value: !GetAtt AmplifyApp.DefaultDomain
+    Export:
+      Name: !Sub '${AWS::StackName}-AmplifyDefaultDomain'
+
+  AmplifyAppURL:
+    Description: Amplify application URL
+    Value: !Sub 'https://${GitHubBranch}.${AmplifyApp.DefaultDomain}'
+    Export:
+      Name: !Sub '${AWS::StackName}-AmplifyAppURL'
+
+  CustomDomainURL:
+    Condition: HasCustomDomain
+    Description: Custom domain URL
+    Value: !Sub 'https://${CustomDomainName}'
+    Export:
+      Name: !Sub '${AWS::StackName}-CustomDomainURL'

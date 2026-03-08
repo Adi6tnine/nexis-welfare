@@ -1,0 +1,428 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NEXIS Enhanced Monitoring Stack with CloudWatch Dashboards and Alarms'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name
+
+  AlarmEmail:
+    Type: String
+    Description: Email address for alarm notifications
+    Default: alerts@nexis.example.com
+
+Resources:
+  # SNS Topic for Alarms
+  AlarmTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub 'nexis-alarms-${Environment}'
+      DisplayName: !Sub 'NEXIS ${Environment} Alarms'
+      Subscription:
+        - Endpoint: !Ref AlarmEmail
+          Protocol: email
+
+  # CloudWatch Log Groups with Retention
+  EligibilityCheckerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/nexis-eligibility-checker-${Environment}'
+      RetentionInDays: 30
+
+  AIExplanationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/nexis-ai-explanation-${Environment}'
+      RetentionInDays: 30
+
+  ChatAssistantLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/nexis-chat-assistant-${Environment}'
+      RetentionInDays: 30
+
+  ProfileManagerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/nexis-profile-manager-${Environment}'
+      RetentionInDays: 30
+
+  SchemeUploaderLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/nexis-scheme-uploader-${Environment}'
+      RetentionInDays: 30
+
+  # Metric Filters for Business KPIs
+  EligibilityCheckCountFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: '{ $.operation = "eligibility_check" }'
+      LogGroupName: !Ref EligibilityCheckerLogGroup
+      MetricTransformations:
+        - MetricName: EligibilityCheckCount
+          MetricNamespace: !Sub 'NEXIS/${Environment}'
+          MetricValue: '1'
+          DefaultValue: 0
+
+  EligibleSchemesFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: '{ $.operation = "eligibility_check" && $.eligibleCount > 0 }'
+      LogGroupName: !Ref EligibilityCheckerLogGroup
+      MetricTransformations:
+        - MetricName: EligibleSchemesFound
+          MetricNamespace: !Sub 'NEXIS/${Environment}'
+          MetricValue: '$.eligibleCount'
+          DefaultValue: 0
+
+  AIExplanationCountFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: '{ $.operation = "bedrock" }'
+      LogGroupName: !Ref AIExplanationLogGroup
+      MetricTransformations:
+        - MetricName: AIExplanationCount
+          MetricNamespace: !Sub 'NEXIS/${Environment}'
+          MetricValue: '1'
+          DefaultValue: 0
+
+  ChatMessageCountFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: '{ $.operation = "bedrock" }'
+      LogGroupName: !Ref ChatAssistantLogGroup
+      MetricTransformations:
+        - MetricName: ChatMessageCount
+          MetricNamespace: !Sub 'NEXIS/${Environment}'
+          MetricValue: '1'
+          DefaultValue: 0
+
+  SafetyViolationFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: '{ $.operation = "safety_violation" }'
+      LogGroupName: !Ref AIExplanationLogGroup
+      MetricTransformations:
+        - MetricName: SafetyViolations
+          MetricNamespace: !Sub 'NEXIS/${Environment}'
+          MetricValue: '1'
+          DefaultValue: 0
+
+  # CRITICAL ALARMS
+
+  # Alarm: Lambda Error Rate > 5%
+  EligibilityCheckerErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub 'nexis-eligibility-checker-errors-${Environment}'
+      AlarmDescription: 'Eligibility Checker Lambda error rate exceeds 5%'
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub 'nexis-eligibility-checker-${Environment}'
+      AlarmActions:
+        - !Ref AlarmTopic
+      TreatMissingData: notBreaching
+
+  # Alarm: Lambda Duration > 25 seconds
+  EligibilityCheckerDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub 'nexis-eligibility-checker-duration-${Environment}'
+      AlarmDescription: 'Eligibility Checker Lambda duration exceeds 25 seconds'
+      MetricName: Duration
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 25000
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub 'nexis-eligibility-checker-${Environment}'
+      AlarmActions:
+        - !Ref AlarmTopic
+      TreatMissingData: notBreaching
+
+  # Alarm: API Gateway 5xx Rate > 1%
+  APIGateway5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub 'nexis-api-5xx-errors-${Environment}'
+      AlarmDescription: 'API Gateway 5xx error rate exceeds 1%'
+      MetricName: 5XXError
+      Namespace: AWS/ApiGateway
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub 'nexis-api-${Environment}'
+      AlarmActions:
+        - !Ref AlarmTopic
+      TreatMissingData: notBreaching
+
+  # Alarm: DynamoDB Throttling > 10/min
+  DynamoDBThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub 'nexis-dynamodb-throttling-${Environment}'
+      AlarmDescription: 'DynamoDB throttling exceeds 10 per minute'
+      MetricName: UserErrors
+      Namespace: AWS/DynamoDB
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref AlarmTopic
+      TreatMissingData: notBreaching
+
+  # WARNING ALARMS
+
+  # Alarm: Lambda Error Rate > 2%
+  EligibilityCheckerWarningAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub 'nexis-eligibility-checker-errors-warning-${Environment}'
+      AlarmDescription: 'Eligibility Checker Lambda error rate exceeds 2%'
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 2
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub 'nexis-eligibility-checker-${Environment}'
+      AlarmActions:
+        - !Ref AlarmTopic
+      TreatMissingData: notBreaching
+
+  # Alarm: API Latency p95 > 5 seconds
+  APILatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub 'nexis-api-latency-${Environment}'
+      AlarmDescription: 'API Gateway p95 latency exceeds 5 seconds'
+      MetricName: Latency
+      Namespace: AWS/ApiGateway
+      ExtendedStatistic: p95
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 5000
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub 'nexis-api-${Environment}'
+      AlarmActions:
+        - !Ref AlarmTopic
+      TreatMissingData: notBreaching
+
+  # Alarm: Safety Violations > 5/hour
+  SafetyViolationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub 'nexis-safety-violations-${Environment}'
+      AlarmDescription: 'AI safety violations exceed 5 per hour'
+      MetricName: SafetyViolations
+      Namespace: !Sub 'NEXIS/${Environment}'
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref AlarmTopic
+      TreatMissingData: notBreaching
+
+  # CloudWatch Dashboard - Operations
+  OperationsDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub 'nexis-operations-${Environment}'
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["AWS/Lambda", "Invocations", {"stat": "Sum", "label": "Eligibility Checker"}],
+                  [".", ".", {"stat": "Sum", "label": "AI Explanation"}],
+                  [".", ".", {"stat": "Sum", "label": "Chat Assistant"}]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "Lambda Invocations",
+                "yAxis": {"left": {"min": 0}}
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["AWS/Lambda", "Errors", {"stat": "Sum", "label": "Errors"}],
+                  [".", "Throttles", {"stat": "Sum", "label": "Throttles"}]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "Lambda Errors & Throttles",
+                "yAxis": {"left": {"min": 0}}
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["AWS/Lambda", "Duration", {"stat": "Average", "label": "Average"}],
+                  ["...", {"stat": "p95", "label": "p95"}],
+                  ["...", {"stat": "p99", "label": "p99"}]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "Lambda Duration (ms)",
+                "yAxis": {"left": {"min": 0}}
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["AWS/ApiGateway", "Count", {"stat": "Sum", "label": "Total Requests"}],
+                  [".", "4XXError", {"stat": "Sum", "label": "4xx Errors"}],
+                  [".", "5XXError", {"stat": "Sum", "label": "5xx Errors"}]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "API Gateway Requests",
+                "yAxis": {"left": {"min": 0}}
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["AWS/ApiGateway", "Latency", {"stat": "Average", "label": "Average"}],
+                  ["...", {"stat": "p95", "label": "p95"}],
+                  ["...", {"stat": "p99", "label": "p99"}]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "API Gateway Latency (ms)",
+                "yAxis": {"left": {"min": 0}}
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["AWS/DynamoDB", "ConsumedReadCapacityUnits", {"stat": "Sum"}],
+                  [".", "ConsumedWriteCapacityUnits", {"stat": "Sum"}]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "DynamoDB Capacity Units",
+                "yAxis": {"left": {"min": 0}}
+              }
+            }
+          ]
+        }
+
+  # CloudWatch Dashboard - Business Metrics
+  BusinessMetricsDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub 'nexis-business-${Environment}'
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["NEXIS/${Environment}", "EligibilityCheckCount", {"stat": "Sum", "label": "Total Checks"}]
+                ],
+                "period": 3600,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "Eligibility Checks (Hourly)",
+                "yAxis": {"left": {"min": 0}}
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["NEXIS/${Environment}", "EligibleSchemesFound", {"stat": "Average", "label": "Avg Eligible Schemes"}]
+                ],
+                "period": 3600,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "Average Eligible Schemes per User",
+                "yAxis": {"left": {"min": 0}}
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["NEXIS/${Environment}", "AIExplanationCount", {"stat": "Sum", "label": "Explanations"}],
+                  [".", "ChatMessageCount", {"stat": "Sum", "label": "Chat Messages"}]
+                ],
+                "period": 3600,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "AI Usage (Hourly)",
+                "yAxis": {"left": {"min": 0}}
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  ["NEXIS/${Environment}", "SafetyViolations", {"stat": "Sum", "label": "Safety Violations"}]
+                ],
+                "period": 3600,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "AI Safety Violations (Hourly)",
+                "yAxis": {"left": {"min": 0}}
+              }
+            }
+          ]
+        }
+
+Outputs:
+  AlarmTopicArn:
+    Description: ARN of SNS topic for alarms
+    Value: !Ref AlarmTopic
+    Export:
+      Name: !Sub '${AWS::StackName}-AlarmTopicArn'
+
+  OperationsDashboardURL:
+    Description: URL to Operations Dashboard
+    Value: !Sub 'https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=nexis-operations-${Environment}'
+
+  BusinessMetricsDashboardURL:
+    Description: URL to Business Metrics Dashboard
+    Value: !Sub 'https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=nexis-business-${Environment}'

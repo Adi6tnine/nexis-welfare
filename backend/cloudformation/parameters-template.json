@@ -1,0 +1,210 @@
+{
+  "dev": {
+    "storage": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "dev"
+      }
+    ],
+    "compute": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "dev"
+      },
+      {
+        "ParameterKey": "StorageStackName",
+        "ParameterValue": "nexis-storage-dev"
+      }
+    ],
+    "api": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "dev"
+      },
+      {
+        "ParameterKey": "ComputeStackName",
+        "ParameterValue": "nexis-compute-dev"
+      }
+    ],
+    "monitoring": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "dev"
+      },
+      {
+        "ParameterKey": "ComputeStackName",
+        "ParameterValue": "nexis-compute-dev"
+      },
+      {
+        "ParameterKey": "APIStackName",
+        "ParameterValue": "nexis-api-dev"
+      },
+      {
+        "ParameterKey": "AlertEmail",
+        "ParameterValue": "dev-alerts@example.com"
+      }
+    ],
+    "frontend": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "dev"
+      },
+      {
+        "ParameterKey": "GitHubRepository",
+        "ParameterValue": "https://github.com/username/nexis"
+      },
+      {
+        "ParameterKey": "GitHubBranch",
+        "ParameterValue": "develop"
+      },
+      {
+        "ParameterKey": "GitHubToken",
+        "ParameterValue": "REPLACE_WITH_YOUR_GITHUB_TOKEN"
+      },
+      {
+        "ParameterKey": "APIStackName",
+        "ParameterValue": "nexis-api-dev"
+      }
+    ]
+  },
+  "staging": {
+    "storage": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "staging"
+      }
+    ],
+    "compute": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "staging"
+      },
+      {
+        "ParameterKey": "StorageStackName",
+        "ParameterValue": "nexis-storage-staging"
+      }
+    ],
+    "api": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "staging"
+      },
+      {
+        "ParameterKey": "ComputeStackName",
+        "ParameterValue": "nexis-compute-staging"
+      }
+    ],
+    "monitoring": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "staging"
+      },
+      {
+        "ParameterKey": "ComputeStackName",
+        "ParameterValue": "nexis-compute-staging"
+      },
+      {
+        "ParameterKey": "APIStackName",
+        "ParameterValue": "nexis-api-staging"
+      },
+      {
+        "ParameterKey": "AlertEmail",
+        "ParameterValue": "staging-alerts@example.com"
+      }
+    ],
+    "frontend": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "staging"
+      },
+      {
+        "ParameterKey": "GitHubRepository",
+        "ParameterValue": "https://github.com/username/nexis"
+      },
+      {
+        "ParameterKey": "GitHubBranch",
+        "ParameterValue": "staging"
+      },
+      {
+        "ParameterKey": "GitHubToken",
+        "ParameterValue": "REPLACE_WITH_YOUR_GITHUB_TOKEN"
+      },
+      {
+        "ParameterKey": "APIStackName",
+        "ParameterValue": "nexis-api-staging"
+      }
+    ]
+  },
+  "prod": {
+    "storage": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "prod"
+      }
+    ],
+    "compute": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "prod"
+      },
+      {
+        "ParameterKey": "StorageStackName",
+        "ParameterValue": "nexis-storage-prod"
+      }
+    ],
+    "api": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "prod"
+      },
+      {
+        "ParameterKey": "ComputeStackName",
+        "ParameterValue": "nexis-compute-prod"
+      }
+    ],
+    "monitoring": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "prod"
+      },
+      {
+        "ParameterKey": "ComputeStackName",
+        "ParameterValue": "nexis-compute-prod"
+      },
+      {
+        "ParameterKey": "APIStackName",
+        "ParameterValue": "nexis-api-prod"
+      },
+      {
+        "ParameterKey": "AlertEmail",
+        "ParameterValue": "prod-alerts@example.com"
+      }
+    ],
+    "frontend": [
+      {
+        "ParameterKey": "Environment",
+        "ParameterValue": "prod"
+      },
+      {
+        "ParameterKey": "GitHubRepository",
+        "ParameterValue": "https://github.com/username/nexis"
+      },
+      {
+        "ParameterKey": "GitHubBranch",
+        "ParameterValue": "main"
+      },
+      {
+        "ParameterKey": "GitHubToken",
+        "ParameterValue": "REPLACE_WITH_YOUR_GITHUB_TOKEN"
+      },
+      {
+        "ParameterKey": "APIStackName",
+        "ParameterValue": "nexis-api-prod"
+      },
+      {
+        "ParameterKey": "CustomDomainName",
+        "ParameterValue": "nexis.example.com"
+      }
+    ]
+  }
+}

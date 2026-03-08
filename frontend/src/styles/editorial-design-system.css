@@ -1,0 +1,553 @@
+/* NEXIS Editorial/Brutalist Design System */
+/* Inspired by editorial design with bold typography, strong borders, and geometric shadows */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&display=swap');
+
+:root {
+  /* Color Palette - Editorial */
+  --cream: #FAF9F6;
+  --stone-50: #fafaf9;
+  --stone-100: #f5f5f4;
+  --stone-200: #e7e5e4;
+  --stone-300: #d6d3d1;
+  --stone-400: #a8a29e;
+  --stone-500: #78716c;
+  --stone-600: #57534e;
+  --stone-700: #44403c;
+  --stone-800: #292524;
+  --stone-900: #1c1917;
+  
+  /* Accent Colors */
+  --emerald-500: #10b981;
+  --emerald-600: #059669;
+  --emerald-700: #047857;
+  --emerald-50: #ecfdf5;
+  --emerald-100: #d1fae5;
+  --emerald-200: #a7f3d0;
+  
+  --amber-50: #fffbeb;
+  --amber-200: #fde68a;
+  --amber-600: #d97706;
+  
+  --rose-50: #fff1f2;
+  --rose-200: #fecdd3;
+  
+  --purple-50: #faf5ff;
+  --purple-600: #9333ea;
+  --purple-700: #7c3aed;
+  
+  --blue-50: #eff6ff;
+  --blue-200: #bfdbfe;
+  --blue-800: #1e40af;
+  --blue-900: #1e3a8a;
+  
+  --orange-50: #fff7ed;
+  --orange-200: #fed7aa;
+  
+  --indigo-50: #eef2ff;
+  --indigo-200: #c7d2fe;
+  
+  --red-600: #dc2626;
+  
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  
+  /* Border Radius - Minimal for brutalist look */
+  --radius-none: 0;
+  --radius-sm: 0.125rem;
+  
+  /* Transitions */
+  --transition-fast: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-base: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Global Styles */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--cream);
+  color: var(--stone-900);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+/* Remove number input arrows */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Hide scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--emerald-600);
+  color: white;
+}
+
+/* Editorial Typography */
+.editorial-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 4.75rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--stone-900);
+}
+
+.editorial-subtitle {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4vw, 3.75rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--emerald-600);
+  line-height: 1.1;
+}
+
+.editorial-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 3vw, 3rem);
+  font-weight: 700;
+  color: var(--stone-900);
+  line-height: 1.2;
+}
+
+.editorial-body {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: var(--stone-600);
+  font-weight: 500;
+}
+
+.editorial-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--stone-900);
+}
+
+/* Brutalist Buttons */
+.btn-brutalist {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 2px solid var(--stone-900);
+  background: var(--emerald-600);
+  color: var(--cream);
+  box-shadow: 4px 4px 0px 0px rgba(28, 25, 23, 0.15);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.btn-brutalist:hover {
+  transform: translateY(2px);
+  box-shadow: 2px 2px 0px 0px rgba(28, 25, 23, 0.15);
+}
+
+.btn-brutalist:active {
+  transform: translateY(4px);
+  box-shadow: 0px 0px 0px 0px rgba(28, 25, 23, 0.15);
+}
+
+.btn-brutalist-secondary {
+  background: var(--cream);
+  color: var(--stone-900);
+  border: 2px solid var(--stone-900);
+  box-shadow: 4px 4px 0px 0px rgba(28, 25, 23, 1);
+}
+
+.btn-brutalist-secondary:hover {
+  background: var(--stone-100);
+  transform: translateY(2px);
+  box-shadow: 2px 2px 0px 0px rgba(28, 25, 23, 1);
+}
+
+.btn-brutalist-disabled {
+  background: var(--stone-200);
+  color: var(--stone-400);
+  border-color: var(--stone-300);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-brutalist-disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Brutalist Cards */
+.card-brutalist {
+  background: var(--cream);
+  border: 2px solid var(--stone-300);
+  box-shadow: 4px 4px 0px 0px rgba(231, 229, 228, 1);
+  transition: all var(--transition-base);
+}
+
+.card-brutalist:hover {
+  border-color: var(--emerald-600);
+  box-shadow: 4px 4px 0px 0px rgba(5, 150, 105, 0.3);
+  transform: translateY(-2px);
+}
+
+.card-brutalist-elevated {
+  background: var(--cream);
+  border: 2px solid var(--stone-900);
+  box-shadow: 8px 8px 0px 0px rgba(28, 25, 23, 1);
+}
+
+.card-brutalist-accent {
+  background: var(--emerald-600);
+  border: 2px solid var(--stone-900);
+  box-shadow: 6px 6px 0px 0px rgba(28, 25, 23, 1);
+  color: white;
+}
+
+/* Brutalist Inputs */
+.input-brutalist {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 4px solid var(--stone-300);
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: var(--stone-900);
+  padding-bottom: 1rem;
+  outline: none;
+  transition: border-color var(--transition-base);
+}
+
+.input-brutalist::placeholder {
+  color: var(--stone-300);
+}
+
+.input-brutalist:focus {
+  border-bottom-color: var(--stone-900);
+}
+
+.input-brutalist-small {
+  font-size: 1rem;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  border-bottom-width: 2px;
+  padding-bottom: 0.5rem;
+}
+
+/* Brutalist Badges */
+.badge-brutalist {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid;
+}
+
+.badge-brutalist-success {
+  background: rgba(5, 150, 105, 0.1);
+  color: var(--emerald-600);
+  border-color: var(--emerald-600);
+}
+
+.badge-brutalist-warning {
+  background: rgba(217, 119, 6, 0.1);
+  color: var(--amber-600);
+  border-color: var(--amber-600);
+}
+
+.badge-brutalist-info {
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--purple-700);
+  border-color: var(--purple-700);
+}
+
+/* Brutalist Progress Bar */
+.progress-brutalist {
+  width: 100%;
+  height: 0.75rem;
+  background: var(--cream);
+  border: 2px solid var(--stone-900);
+  overflow: hidden;
+  box-shadow: 2px 2px 0px 0px rgba(28, 25, 23, 0.1);
+}
+
+.progress-brutalist-fill {
+  height: 100%;
+  background: var(--emerald-600);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Brutalist Dividers */
+.divider-brutalist {
+  width: 100%;
+  height: 2px;
+  background: var(--stone-200);
+  border: none;
+}
+
+.divider-brutalist-thick {
+  height: 4px;
+  background: var(--stone-900);
+}
+
+/* Brutalist Icons */
+.icon-box-brutalist {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border: 2px solid var(--stone-900);
+  box-shadow: 2px 2px 0px 0px rgba(28, 25, 23, 0.1);
+}
+
+.icon-box-brutalist-accent {
+  background: var(--emerald-600);
+  color: white;
+}
+
+/* Brutalist Numbered Steps */
+.step-number-brutalist {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--stone-900);
+  background: var(--cream);
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  box-shadow: 3px 3px 0px 0px rgba(5, 150, 105, 1);
+}
+
+.step-number-brutalist-active {
+  background: var(--emerald-600);
+  color: var(--cream);
+  box-shadow: 3px 3px 0px 0px rgba(28, 25, 23, 1);
+}
+
+/* Brutalist Toast/Notification */
+.toast-brutalist {
+  background: var(--stone-900);
+  color: var(--cream);
+  padding: 1rem 1.5rem;
+  border: 2px solid var(--emerald-600);
+  box-shadow: 6px 6px 0px 0px rgba(5, 150, 105, 1);
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Brutalist Stat Display */
+.stat-brutalist {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label-brutalist {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--stone-500);
+  margin-top: 0.5rem;
+}
+
+/* Brutalist Checkboxes */
+.checkbox-brutalist {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--stone-300);
+  background: var(--cream);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.checkbox-brutalist-checked {
+  background: var(--emerald-600);
+  border-color: var(--emerald-600);
+  box-shadow: 2px 2px 0px 0px rgba(5, 150, 105, 1);
+  transform: translateY(-2px);
+}
+
+/* Brutalist Tabs */
+.tab-brutalist {
+  padding: 1rem 2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.875rem;
+  color: var(--stone-500);
+  border-bottom: 4px solid transparent;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.tab-brutalist:hover {
+  color: var(--stone-900);
+}
+
+.tab-brutalist-active {
+  color: var(--stone-900);
+  border-bottom-color: var(--stone-900);
+}
+
+/* Brutalist Modal/Overlay */
+.modal-brutalist {
+  background: var(--cream);
+  border: 2px solid var(--stone-900);
+  box-shadow: 12px 12px 0px 0px rgba(28, 25, 23, 1);
+  padding: 2rem;
+}
+
+/* Brutalist Floating Nav */
+.floating-nav-brutalist {
+  background: var(--cream);
+  border: 1px solid var(--stone-300);
+  box-shadow: 6px 6px 0px 0px rgba(28, 25, 23, 0.1);
+  padding: 0.75rem 2rem;
+}
+
+/* Brutalist Patterns/Textures */
+.pattern-lines {
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGg0MHY0MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0wIDAuNWg0MCIgc3Ryb2tlPSJyZ2JhKDI4LCAyNSwgMjMsIDAuMDQpIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=');
+  background-repeat: repeat;
+}
+
+.pattern-lines-light {
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGg0MHY0MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0wIDAuNWg0MCIgc3Ryb2tlPSJyZ2JhKDI1MCwgMjQ5LCAyNDYsIDAuMDgpIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=');
+  background-repeat: repeat;
+}
+
+/* Brutalist Animations */
+@keyframes fadeUpBrutalist {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideBrutalist {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes spinBrutalist {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUpBrutalist 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide {
+  animation: slideBrutalist 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-spin {
+  animation: spinBrutalist 0.8s linear infinite;
+}
+
+/* Utility Classes */
+.shadow-brutalist-sm {
+  box-shadow: 2px 2px 0px 0px rgba(28, 25, 23, 0.1);
+}
+
+.shadow-brutalist-md {
+  box-shadow: 4px 4px 0px 0px rgba(28, 25, 23, 0.15);
+}
+
+.shadow-brutalist-lg {
+  box-shadow: 6px 6px 0px 0px rgba(28, 25, 23, 1);
+}
+
+.shadow-brutalist-xl {
+  box-shadow: 8px 8px 0px 0px rgba(28, 25, 23, 1);
+}
+
+.shadow-brutalist-accent {
+  box-shadow: 4px 4px 0px 0px rgba(5, 150, 105, 1);
+}
+
+.border-brutalist {
+  border: 2px solid var(--stone-900);
+}
+
+.border-brutalist-light {
+  border: 2px solid var(--stone-300);
+}
+
+.border-brutalist-accent {
+  border: 2px solid var(--emerald-600);
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  .editorial-title {
+    font-size: 2.5rem;
+  }
+  
+  .editorial-subtitle {
+    font-size: 2rem;
+  }
+  
+  .editorial-heading {
+    font-size: 1.75rem;
+  }
+}

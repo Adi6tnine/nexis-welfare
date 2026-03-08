@@ -1,0 +1,294 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NEXIS Auth Stack - User authentication and management'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+  JWTSecret:
+    Type: String
+    NoEcho: true
+    Description: Secret key for JWT token signing
+    Default: nexis-jwt-secret-change-in-production
+
+Resources:
+  # DynamoDB Table for Users
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub nexis-users-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: EmailIndex
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: NEXIS
+        - Key: Component
+          Value: Auth
+
+  # IAM Role for Auth Lambda
+  AuthLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub nexis-auth-lambda-role-${Environment}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource:
+                  - !GetAtt UsersTable.Arn
+                  - !Sub '${UsersTable.Arn}/index/*'
+
+  # Auth Lambda Function
+  AuthLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub nexis-auth-${Environment}
+      Runtime: nodejs20.x
+      Handler: lambda/auth/index.handler
+      Role: !GetAtt AuthLambdaRole.Arn
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_USERS: !Ref UsersTable
+          JWT_SECRET: !Ref JWTSecret
+          ENVIRONMENT: !Ref Environment
+          AWS_REGION: !Ref AWS::Region
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ message: 'Auth Lambda placeholder - deploy actual code' })
+            };
+          };
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: NEXIS
+
+  # Lambda Log Group
+  AuthLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/nexis-auth-${Environment}
+      RetentionInDays: 30
+
+  # API Gateway REST API
+  AuthApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub nexis-auth-api-${Environment}
+      Description: NEXIS Authentication API
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  # API Gateway Resource: /auth
+  AuthResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref AuthApi
+      ParentId: !GetAtt AuthApi.RootResourceId
+      PathPart: auth
+
+  # API Gateway Resource: /auth/register
+  RegisterResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref AuthApi
+      ParentId: !Ref AuthResource
+      PathPart: register
+
+  # API Gateway Resource: /auth/login
+  LoginResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref AuthApi
+      ParentId: !Ref AuthResource
+      PathPart: login
+
+  # API Gateway Resource: /auth/verify
+  VerifyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref AuthApi
+      ParentId: !Ref AuthResource
+      PathPart: verify
+
+  # API Gateway Resource: /auth/profile
+  ProfileResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref AuthApi
+      ParentId: !Ref AuthResource
+      PathPart: profile
+
+  # API Gateway Method: POST /auth/register
+  RegisterMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref AuthApi
+      ResourceId: !Ref RegisterResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthLambdaFunction.Arn}/invocations
+
+  # API Gateway Method: POST /auth/login
+  LoginMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref AuthApi
+      ResourceId: !Ref LoginResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthLambdaFunction.Arn}/invocations
+
+  # API Gateway Method: GET /auth/verify
+  VerifyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref AuthApi
+      ResourceId: !Ref VerifyResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthLambdaFunction.Arn}/invocations
+
+  # API Gateway Method: PUT /auth/profile
+  ProfileMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref AuthApi
+      ResourceId: !Ref ProfileResource
+      HttpMethod: PUT
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthLambdaFunction.Arn}/invocations
+
+  # CORS OPTIONS Methods
+  RegisterOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref AuthApi
+      ResourceId: !Ref RegisterResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Api-Key,Authorization'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # Lambda Permissions
+  RegisterLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AuthLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${AuthApi}/*/*
+
+  # API Gateway Deployment
+  AuthApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - RegisterMethod
+      - LoginMethod
+      - VerifyMethod
+      - ProfileMethod
+    Properties:
+      RestApiId: !Ref AuthApi
+      StageName: !Ref Environment
+
+Outputs:
+  UsersTableName:
+    Description: DynamoDB Users Table Name
+    Value: !Ref UsersTable
+    Export:
+      Name: !Sub ${AWS::StackName}-UsersTable
+
+  AuthLambdaArn:
+    Description: Auth Lambda Function ARN
+    Value: !GetAtt AuthLambdaFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-AuthLambdaArn
+
+  AuthApiUrl:
+    Description: Auth API Gateway URL
+    Value: !Sub https://${AuthApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
+    Export:
+      Name: !Sub ${AWS::StackName}-AuthApiUrl
+
+  AuthApiId:
+    Description: Auth API Gateway ID
+    Value: !Ref AuthApi
+    Export:
+      Name: !Sub ${AWS::StackName}-AuthApiId

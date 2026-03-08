@@ -1,0 +1,301 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NEXIS IAM Roles and Policies with Least Privilege'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name
+
+Resources:
+  # Lambda Execution Role for Eligibility Checker
+  EligibilityCheckerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'nexis-eligibility-checker-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: EligibilityCheckerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # S3 Read Access for Knowledge Base
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub 'arn:aws:s3:::nexis-knowledge-base-${Environment}'
+                  - !Sub 'arn:aws:s3:::nexis-knowledge-base-${Environment}/*'
+              # DynamoDB Write Access for Results
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/nexis-eligibility-results-${Environment}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/nexis-eligibility-results-${Environment}/index/*'
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/nexis-eligibility-checker-${Environment}:*'
+
+  # Lambda Execution Role for AI Explanation
+  AIExplanationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'nexis-ai-explanation-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: AIExplanationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Bedrock Access
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource: !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0'
+              # DynamoDB Access for Cache
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/nexis-explanation-cache-${Environment}'
+              # S3 Read Access
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Sub 'arn:aws:s3:::nexis-knowledge-base-${Environment}/*'
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/nexis-ai-explanation-${Environment}:*'
+
+  # Lambda Execution Role for Chat Assistant
+  ChatAssistantRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'nexis-chat-assistant-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ChatAssistantPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Bedrock Access
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource: !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0'
+              # DynamoDB Access for Sessions
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/nexis-user-sessions-${Environment}'
+              # S3 Read Access for RAG
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub 'arn:aws:s3:::nexis-knowledge-base-${Environment}'
+                  - !Sub 'arn:aws:s3:::nexis-knowledge-base-${Environment}/*'
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/nexis-chat-assistant-${Environment}:*'
+
+  # Lambda Execution Role for Profile Manager
+  ProfileManagerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'nexis-profile-manager-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ProfileManagerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # DynamoDB Full Access for Users Table
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/nexis-users-${Environment}'
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/nexis-profile-manager-${Environment}:*'
+
+  # Lambda Execution Role for Scheme Uploader
+  SchemeUploaderRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'nexis-scheme-uploader-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: SchemeUploaderPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # S3 Write Access
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: !Sub 'arn:aws:s3:::nexis-knowledge-base-${Environment}/*'
+              # DynamoDB Write Access for Schemes
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/nexis-schemes-${Environment}'
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/nexis-scheme-uploader-${Environment}:*'
+
+  # KMS Key for Encryption
+  EncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: !Sub 'NEXIS encryption key for ${Environment}'
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: Allow Lambda to use the key
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt EligibilityCheckerRole.Arn
+                - !GetAtt AIExplanationRole.Arn
+                - !GetAtt ChatAssistantRole.Arn
+                - !GetAtt ProfileManagerRole.Arn
+                - !GetAtt SchemeUploaderRole.Arn
+            Action:
+              - 'kms:Decrypt'
+              - 'kms:Encrypt'
+              - 'kms:GenerateDataKey'
+            Resource: '*'
+
+  EncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub 'alias/nexis-${Environment}'
+      TargetKeyId: !Ref EncryptionKey
+
+Outputs:
+  EligibilityCheckerRoleArn:
+    Description: ARN of Eligibility Checker Lambda Role
+    Value: !GetAtt EligibilityCheckerRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-EligibilityCheckerRoleArn'
+
+  AIExplanationRoleArn:
+    Description: ARN of AI Explanation Lambda Role
+    Value: !GetAtt AIExplanationRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-AIExplanationRoleArn'
+
+  ChatAssistantRoleArn:
+    Description: ARN of Chat Assistant Lambda Role
+    Value: !GetAtt ChatAssistantRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ChatAssistantRoleArn'
+
+  ProfileManagerRoleArn:
+    Description: ARN of Profile Manager Lambda Role
+    Value: !GetAtt ProfileManagerRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ProfileManagerRoleArn'
+
+  SchemeUploaderRoleArn:
+    Description: ARN of Scheme Uploader Lambda Role
+    Value: !GetAtt SchemeUploaderRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-SchemeUploaderRoleArn'
+
+  EncryptionKeyId:
+    Description: KMS Key ID for encryption
+    Value: !Ref EncryptionKey
+    Export:
+      Name: !Sub '${AWS::StackName}-EncryptionKeyId'
+
+  EncryptionKeyArn:
+    Description: KMS Key ARN for encryption
+    Value: !GetAtt EncryptionKey.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-EncryptionKeyArn'

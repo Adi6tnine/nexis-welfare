@@ -1,0 +1,368 @@
+name: NEXIS CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  NODE_VERSION: '18.x'
+  AWS_REGION: us-east-1
+
+jobs:
+  # Job 1: Test Backend
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+      
+      - name: Run linter
+        working-directory: backend
+        run: npm run lint
+      
+      - name: Run unit tests
+        working-directory: backend
+        run: npm run test -- --coverage
+      
+      - name: Run property-based tests
+        working-directory: backend
+        run: npm run test:properties
+        continue-on-error: true
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./backend/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+  
+  # Job 2: Test Frontend
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      
+      - name: Run linter
+        working-directory: frontend
+        run: npm run lint
+      
+      - name: Run tests
+        working-directory: frontend
+        run: npm run test -- --coverage
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+  
+  # Job 3: Build Backend
+  build-backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    needs: [test-backend]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+      
+      - name: Build TypeScript
+        working-directory: backend
+        run: npm run build
+      
+      - name: Package Lambda functions
+        working-directory: backend
+        run: npm run package
+      
+      - name: Upload Lambda artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: lambda-package
+          path: backend/lambda.zip
+          retention-days: 7
+  
+  # Job 4: Build Frontend
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    needs: [test-frontend]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      
+      - name: Build application
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
+          VITE_ENVIRONMENT: production
+      
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/dist
+          retention-days: 7
+  
+  # Job 5: Deploy to Development
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: development
+      url: https://dev.nexis.example.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Download Lambda artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: lambda-package
+          path: ./artifacts
+      
+      - name: Deploy CloudFormation stacks
+        working-directory: backend/cloudformation
+        run: |
+          chmod +x deploy-all-stacks.sh
+          ./deploy-all-stacks.sh dev
+        env:
+          ENVIRONMENT: dev
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL_DEV }}
+      
+      - name: Update Lambda functions
+        run: |
+          aws lambda update-function-code \
+            --function-name nexis-eligibility-checker-dev \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-ai-explanation-dev \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-chat-assistant-dev \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-profile-manager-dev \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-scheme-uploader-dev \
+            --zip-file fileb://artifacts/lambda.zip
+      
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests against dev environment..."
+          # Add smoke test commands here
+  
+  # Job 6: Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
+    if: startsWith(github.ref, 'refs/heads/release/') && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://staging.nexis.example.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_STAGING }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_STAGING }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Download Lambda artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: lambda-package
+          path: ./artifacts
+      
+      - name: Deploy CloudFormation stacks
+        working-directory: backend/cloudformation
+        run: |
+          chmod +x deploy-all-stacks.sh
+          ./deploy-all-stacks.sh staging
+        env:
+          ENVIRONMENT: staging
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL_STAGING }}
+      
+      - name: Update Lambda functions
+        run: |
+          aws lambda update-function-code \
+            --function-name nexis-eligibility-checker-staging \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-ai-explanation-staging \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-chat-assistant-staging \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-profile-manager-staging \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-scheme-uploader-staging \
+            --zip-file fileb://artifacts/lambda.zip
+      
+      - name: Run integration tests
+        run: |
+          echo "Running integration tests against staging environment..."
+          # Add integration test commands here
+  
+  # Job 7: Deploy to Production
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://nexis.example.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Download Lambda artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: lambda-package
+          path: ./artifacts
+      
+      - name: Deploy CloudFormation stacks
+        working-directory: backend/cloudformation
+        run: |
+          chmod +x deploy-all-stacks.sh
+          ./deploy-all-stacks.sh prod
+        env:
+          ENVIRONMENT: prod
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL_PROD }}
+      
+      - name: Update Lambda functions
+        run: |
+          aws lambda update-function-code \
+            --function-name nexis-eligibility-checker-prod \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-ai-explanation-prod \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-chat-assistant-prod \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-profile-manager-prod \
+            --zip-file fileb://artifacts/lambda.zip
+          
+          aws lambda update-function-code \
+            --function-name nexis-scheme-uploader-prod \
+            --zip-file fileb://artifacts/lambda.zip
+      
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests against production environment..."
+          # Add smoke test commands here
+      
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          body: |
+            Automated production deployment
+            
+            Commit: ${{ github.sha }}
+            Branch: ${{ github.ref }}
+          draft: false
+          prerelease: false

@@ -1,0 +1,266 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'NEXIS Storage Stack - S3 Buckets and DynamoDB Tables'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name for resource naming
+
+Resources:
+  # S3 Bucket for Knowledge Base
+  KnowledgeBaseBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'nexis-knowledge-base-${Environment}'
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: TransitionToIntelligentTiering
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: INTELLIGENT_TIERING
+          - Id: ArchiveOldVersions
+            Status: Enabled
+            NoncurrentVersionTransitions:
+              - TransitionInDays: 180
+                StorageClass: GLACIER
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # DynamoDB Table: Users
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'nexis-users-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # DynamoDB Table: Eligibility Results
+  EligibilityResultsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'nexis-eligibility-results-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: resultId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: resultId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: userId-timestamp-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # DynamoDB Table: User Sessions
+  UserSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'nexis-user-sessions-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: sessionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sessionId
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # DynamoDB Table: Schemes
+  SchemesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'nexis-schemes-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: schemeId
+          AttributeType: S
+        - AttributeName: state
+          AttributeType: S
+      KeySchema:
+        - AttributeName: schemeId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: state-index
+          KeySchema:
+            - AttributeName: state
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+  # DynamoDB Table: Explanation Cache
+  ExplanationCacheTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'nexis-explanation-cache-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: cacheKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: cacheKey
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: NEXIS
+
+Outputs:
+  KnowledgeBaseBucketName:
+    Description: Name of the S3 Knowledge Base bucket
+    Value: !Ref KnowledgeBaseBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-KnowledgeBaseBucket'
+
+  KnowledgeBaseBucketArn:
+    Description: ARN of the S3 Knowledge Base bucket
+    Value: !GetAtt KnowledgeBaseBucket.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-KnowledgeBaseBucketArn'
+
+  UsersTableName:
+    Description: Name of the Users DynamoDB table
+    Value: !Ref UsersTable
+    Export:
+      Name: !Sub '${AWS::StackName}-UsersTable'
+
+  UsersTableArn:
+    Description: ARN of the Users DynamoDB table
+    Value: !GetAtt UsersTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-UsersTableArn'
+
+  EligibilityResultsTableName:
+    Description: Name of the Eligibility Results DynamoDB table
+    Value: !Ref EligibilityResultsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-EligibilityResultsTable'
+
+  EligibilityResultsTableArn:
+    Description: ARN of the Eligibility Results DynamoDB table
+    Value: !GetAtt EligibilityResultsTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-EligibilityResultsTableArn'
+
+  UserSessionsTableName:
+    Description: Name of the User Sessions DynamoDB table
+    Value: !Ref UserSessionsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-UserSessionsTable'
+
+  UserSessionsTableArn:
+    Description: ARN of the User Sessions DynamoDB table
+    Value: !GetAtt UserSessionsTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-UserSessionsTableArn'
+
+  SchemesTableName:
+    Description: Name of the Schemes DynamoDB table
+    Value: !Ref SchemesTable
+    Export:
+      Name: !Sub '${AWS::StackName}-SchemesTable'
+
+  SchemesTableArn:
+    Description: ARN of the Schemes DynamoDB table
+    Value: !GetAtt SchemesTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-SchemesTableArn'
+
+  ExplanationCacheTableName:
+    Description: Name of the Explanation Cache DynamoDB table
+    Value: !Ref ExplanationCacheTable
+    Export:
+      Name: !Sub '${AWS::StackName}-ExplanationCacheTable'
+
+  ExplanationCacheTableArn:
+    Description: ARN of the Explanation Cache DynamoDB table
+    Value: !GetAtt ExplanationCacheTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ExplanationCacheTableArn'
