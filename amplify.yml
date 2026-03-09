@@ -15,3 +15,14 @@ frontend:
   cache:
     paths:
       - frontend/node_modules/**/*
+environment:
+  variables:
+    VITE_API_BASE_URL: https://b73ak67e9k.execute-api.us-east-1.amazonaws.com/dev
+    VITE_API_KEY: SX6unNPbujaAPaTOF8q8Y8CH44x0gWWcWtkh0QF2
+    VITE_AUTH_API_URL: https://c4scgq7tkh.execute-api.us-east-1.amazonaws.com/dev
+    VITE_ENVIRONMENT: production
+    VITE_ENABLE_CHAT_ASSISTANT: true
+    VITE_ENABLE_AI_EXPLANATIONS: true
+    VITE_ENABLE_OFFLINE_MODE: false
+    VITE_ENABLE_DEBUG_LOGS: false
+    VITE_MOCK_API_RESPONSES: false
