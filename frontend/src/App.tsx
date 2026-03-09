@@ -4,6 +4,7 @@ import LanguageSelectionPage from './pages/LanguageSelectionPage';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import FlexibleProfilePage from './pages/FlexibleProfilePage';
 import SimpleProfilePage from './pages/SimpleProfilePage';
 import UserProfilePage from './pages/UserProfilePage';
 import AdaptiveQuestionnairePage from './pages/AdaptiveQuestionnairePage';
@@ -43,6 +44,7 @@ function AppContent() {
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/check-eligibility" element={<FlexibleProfilePage />} />
           <Route path="/profile" element={<UserProfilePage />} />
           <Route path="/simple-profile" element={<SimpleProfilePage />} />
           <Route path="/adaptive-profile" element={<AdaptiveQuestionnairePage />} />

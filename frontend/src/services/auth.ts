@@ -1,5 +1,35 @@
 // User Authentication Service
-import apiClient from './api';
+import axios from 'axios';
+
+// Create separate auth API client
+const authApiClient = axios.create({
+  baseURL: import.meta.env.VITE_AUTH_API_URL || 'https://c4scgq7tkh.execute-api.us-east-1.amazonaws.com/dev',
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+authApiClient.interceptors.request.use(
+  (config) => {
+    console.log(`Auth API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+authApiClient.interceptors.response.use(
+  (response) => {
+    console.log(`Auth API Response: ${response.status} ${response.config.url}`);
+    return response;
+  },
+  (error) => {
+    console.error('Auth API Error:', error.response?.status, error.message);
+    return Promise.reject(error);
+  }
+);
 
 export interface User {
   userId: string;
@@ -37,7 +67,7 @@ const USER_KEY = 'nexis_user';
  */
 export async function register(data: RegisterData): Promise<AuthResponse> {
   try {
-    const response = await apiClient.post('/auth/register', data);
+    const response = await authApiClient.post('/auth/register', data);
     const authData: AuthResponse = response.data.data;
     
     // Store auth data
@@ -56,15 +86,15 @@ export async function register(data: RegisterData): Promise<AuthResponse> {
  */
 export async function login(credentials: LoginCredentials): Promise<AuthResponse> {
   try {
-    const response = await apiClient.post('/auth/login', credentials);
+    const response = await authApiClient.post('/auth/login', credentials);
     const authData: AuthResponse = response.data.data;
     
     // Store auth data
     localStorage.setItem(TOKEN_KEY, authData.token);
     localStorage.setItem(USER_KEY, JSON.stringify(authData.user));
     
-    // Set token in API client headers
-    apiClient.defaults.headers.common['Authorization'] = `Bearer ${authData.token}`;
+    // Set token in auth API client headers
+    authApiClient.defaults.headers.common['Authorization'] = `Bearer ${authData.token}`;
     
     return authData;
   } catch (error: any) {
@@ -79,7 +109,7 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
 export function logout(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
-  delete apiClient.defaults.headers.common['Authorization'];
+  delete authApiClient.defaults.headers.common['Authorization'];
 }
 
 /**
@@ -118,7 +148,7 @@ export function isAuthenticated(): boolean {
 export function initializeAuth(): void {
   const token = getAuthToken();
   if (token) {
-    apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    authApiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
 }
 
@@ -127,7 +157,7 @@ export function initializeAuth(): void {
  */
 export async function verifyToken(): Promise<boolean> {
   try {
-    const response = await apiClient.get('/auth/verify');
+    const response = await authApiClient.get('/auth/verify');
     return response.data.data.valid;
   } catch {
     // Token invalid, clear auth data
@@ -141,7 +171,7 @@ export async function verifyToken(): Promise<boolean> {
  */
 export async function requestPasswordReset(email: string): Promise<void> {
   try {
-    await apiClient.post('/auth/forgot-password', { email });
+    await authApiClient.post('/auth/forgot-password', { email });
   } catch (error: any) {
     console.error('Password reset request error:', error);
     throw new Error(error.response?.data?.error?.message || 'Password reset request failed');
@@ -153,7 +183,7 @@ export async function requestPasswordReset(email: string): Promise<void> {
  */
 export async function resetPassword(token: string, newPassword: string): Promise<void> {
   try {
-    await apiClient.post('/auth/reset-password', { token, newPassword });
+    await authApiClient.post('/auth/reset-password', { token, newPassword });
   } catch (error: any) {
     console.error('Password reset error:', error);
     throw new Error(error.response?.data?.error?.message || 'Password reset failed');
@@ -165,7 +195,7 @@ export async function resetPassword(token: string, newPassword: string): Promise
  */
 export async function updateUserProfile(updates: Partial<User>): Promise<User> {
   try {
-    const response = await apiClient.put('/auth/profile', updates);
+    const response = await authApiClient.put('/auth/profile', updates);
     const updatedUser: User = response.data.data.user;
     
     // Update local storage

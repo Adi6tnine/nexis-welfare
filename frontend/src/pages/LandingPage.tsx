@@ -52,7 +52,7 @@ export default function LandingPage() {
   };
 
   const handleFormStart = () => {
-    navigate('/profile');
+    navigate('/check-eligibility');
   };
 
   return (
