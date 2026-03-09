@@ -4,8 +4,8 @@ import { checkEligibilityMock } from './mockEligibility';
 // USE MOCK DATA FOR DEMO - Set to false to use real API
 const USE_MOCK = false;
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4566';
-const API_KEY = import.meta.env.VITE_API_KEY || 'dev-api-key';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://b73ak67e9k.execute-api.us-east-1.amazonaws.com/dev';
+const API_KEY = import.meta.env.VITE_API_KEY || 'SX6unNPbujaAPaTOF8q8Y8CH44x0gWWcWtkh0QF2';
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
