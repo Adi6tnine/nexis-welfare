@@ -18,46 +18,13 @@ Parameters:
     Default: nexis-jwt-secret-change-in-production
 
 Resources:
-  # DynamoDB Table for Users
-  UsersTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub nexis-users-${Environment}
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: userId
-          AttributeType: S
-        - AttributeName: email
-          AttributeType: S
-      KeySchema:
-        - AttributeName: userId
-          KeyType: HASH
-      GlobalSecondaryIndexes:
-        - IndexName: EmailIndex
-          KeySchema:
-            - AttributeName: email
-              KeyType: HASH
-          Projection:
-            ProjectionType: ALL
-      StreamSpecification:
-        StreamViewType: NEW_AND_OLD_IMAGES
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      SSESpecification:
-        SSEEnabled: true
-      Tags:
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Application
-          Value: NEXIS
-        - Key: Component
-          Value: Auth
+  # Import existing Users Table from storage stack
+  # Note: Table is created in storage-stack.yaml
 
   # IAM Role for Auth Lambda
   AuthLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub nexis-auth-lambda-role-${Environment}
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -80,8 +47,8 @@ Resources:
                   - dynamodb:Query
                   - dynamodb:Scan
                 Resource:
-                  - !GetAtt UsersTable.Arn
-                  - !Sub '${UsersTable.Arn}/index/*'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/nexis-users-${Environment}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/nexis-users-${Environment}/index/*'
 
   # Auth Lambda Function
   AuthLambdaFunction:
@@ -95,16 +62,23 @@ Resources:
       MemorySize: 512
       Environment:
         Variables:
-          DYNAMODB_TABLE_USERS: !Ref UsersTable
+          DYNAMODB_TABLE_USERS: !Sub nexis-users-${Environment}
           JWT_SECRET: !Ref JWTSecret
           ENVIRONMENT: !Ref Environment
-          AWS_REGION: !Ref AWS::Region
       Code:
         ZipFile: |
           exports.handler = async (event) => {
             return {
               statusCode: 200,
-              body: JSON.stringify({ message: 'Auth Lambda placeholder - deploy actual code' })
+              headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+              },
+              body: JSON.stringify({ 
+                statusCode: 200,
+                message: 'Auth Lambda placeholder - update with actual code',
+                timestamp: new Date().toISOString()
+              })
             };
           };
       Tags:
@@ -271,7 +245,7 @@ Resources:
 Outputs:
   UsersTableName:
     Description: DynamoDB Users Table Name
-    Value: !Ref UsersTable
+    Value: !Sub nexis-users-${Environment}
     Export:
       Name: !Sub ${AWS::StackName}-UsersTable
 
