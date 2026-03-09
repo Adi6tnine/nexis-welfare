@@ -1,0 +1,24 @@
+{
+    "benefits":  "Free coaching + Rs. 3,000/month",
+    "schemeId":  "free-coaching-sc-st",
+    "eligibilityCriteria":  {
+                                "ageMin":  18,
+                                "ageMax":  35,
+                                "socialCategories":  [
+                                                         "SC",
+                                                         "ST"
+                                                     ]
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Free coaching for competitive exams",
+    "ministry":  "Ministry of Social Justice",
+    "schemeName":  "Free Coaching for SC/ST",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Education"
+}

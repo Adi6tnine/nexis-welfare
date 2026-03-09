@@ -1,0 +1,19 @@
+{
+    "benefits":  "Subsidized cancer treatment",
+    "schemeId":  "cancer-control",
+    "eligibilityCriteria":  {
+                                "incomeMax":  500000
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Cancer screening and treatment",
+    "ministry":  "Ministry of Health",
+    "schemeName":  "National Cancer Control Programme",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Healthcare"
+}

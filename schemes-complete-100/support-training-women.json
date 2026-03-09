@@ -1,0 +1,22 @@
+{
+    "benefits":  "Free training + Rs. 3,000/month",
+    "schemeId":  "support-training-women",
+    "eligibilityCriteria":  {
+                                "gender":  [
+                                               "Female"
+                                           ],
+                                "ageMin":  16
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Training for women",
+    "ministry":  "Ministry of Women and Child",
+    "schemeName":  "Support to Training and Employment Programme for Women",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Women \u0026 Child"
+}

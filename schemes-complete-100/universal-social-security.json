@@ -1,0 +1,20 @@
+{
+    "benefits":  "Multiple benefits for registered workers",
+    "schemeId":  "universal-social-security",
+    "eligibilityCriteria":  {
+                                "ageMin":  18,
+                                "ageMax":  60
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Social security for unorganized workers",
+    "ministry":  "Ministry of Labour",
+    "schemeName":  "Universal Social Security Scheme",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Social Security"
+}

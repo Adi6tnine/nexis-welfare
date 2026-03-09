@@ -1,0 +1,19 @@
+{
+    "benefits":  "Rs. 30,000 health cover",
+    "schemeId":  "rashtriya-swasthya-bima",
+    "eligibilityCriteria":  {
+                                "incomeMax":  100000
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Health insurance for BPL families",
+    "ministry":  "Ministry of Labour",
+    "schemeName":  "Rashtriya Swasthya Bima Yojana",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Social Security"
+}

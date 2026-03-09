@@ -1,0 +1,23 @@
+{
+    "benefits":  "Financial incentives for girl child",
+    "schemeId":  "beti-bachao-beti-padhao",
+    "eligibilityCriteria":  {
+                                "ageMin":  0,
+                                "ageMax":  21,
+                                "gender":  [
+                                               "Female"
+                                           ]
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Girl child welfare scheme",
+    "ministry":  "Ministry of Women and Child",
+    "schemeName":  "Beti Bachao Beti Padhao",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Women \u0026 Child"
+}

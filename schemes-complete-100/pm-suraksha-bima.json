@@ -1,0 +1,20 @@
+{
+    "benefits":  "Rs. 2 lakh accident cover for Rs. 20/year",
+    "schemeId":  "pm-suraksha-bima",
+    "eligibilityCriteria":  {
+                                "ageMin":  18,
+                                "ageMax":  70
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Accident insurance scheme",
+    "ministry":  "Ministry of Finance",
+    "schemeName":  "PM Suraksha Bima Yojana",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Social Security"
+}

@@ -1,0 +1,19 @@
+{
+    "benefits":  "8.2% interest rate",
+    "schemeId":  "senior-citizen-savings",
+    "eligibilityCriteria":  {
+                                "ageMin":  60
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Savings scheme for elderly",
+    "ministry":  "Ministry of Finance",
+    "schemeName":  "Senior Citizen Savings Scheme",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Social Security"
+}

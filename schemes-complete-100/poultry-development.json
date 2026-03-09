@@ -1,0 +1,23 @@
+{
+    "benefits":  "25-35% subsidy on poultry units",
+    "schemeId":  "poultry-development",
+    "eligibilityCriteria":  {
+                                "occupations":  [
+                                                    "Farmer",
+                                                    "Self-Employed"
+                                                ],
+                                "ageMin":  18
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Support for poultry farming",
+    "ministry":  "Ministry of Animal Husbandry",
+    "schemeName":  "Poultry Development Scheme",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Agriculture"
+}

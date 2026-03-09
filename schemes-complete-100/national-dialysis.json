@@ -1,0 +1,19 @@
+{
+    "benefits":  "Free dialysis at government centers",
+    "schemeId":  "national-dialysis",
+    "eligibilityCriteria":  {
+                                "incomeMax":  500000
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Free dialysis services",
+    "ministry":  "Ministry of Health",
+    "schemeName":  "National Dialysis Programme",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Healthcare"
+}

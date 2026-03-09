@@ -1,0 +1,26 @@
+{
+    "benefits":  "Rs. 6,000 per year",
+    "schemeId":  "scholarship-single-girl",
+    "eligibilityCriteria":  {
+                                "ageMin":  6,
+                                "ageMax":  18,
+                                "gender":  [
+                                               "Female"
+                                           ],
+                                "occupations":  [
+                                                    "Student"
+                                                ]
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Scholarship for single girl child",
+    "ministry":  "Ministry of Education",
+    "schemeName":  "Scholarship for Single Girl Child",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Education"
+}

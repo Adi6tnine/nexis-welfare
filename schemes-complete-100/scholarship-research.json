@@ -1,0 +1,23 @@
+{
+    "benefits":  "Rs. 31,000-35,000 per month",
+    "schemeId":  "scholarship-research",
+    "eligibilityCriteria":  {
+                                "ageMin":  21,
+                                "ageMax":  35,
+                                "occupations":  [
+                                                    "Student"
+                                                ]
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Fellowship for research scholars",
+    "ministry":  "Ministry of Education",
+    "schemeName":  "Research Fellowship",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Education"
+}

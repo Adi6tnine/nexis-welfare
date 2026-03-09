@@ -48,7 +48,26 @@ export default function FlexibleProfilePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    setIsLoggedIn(isAuthenticated());
+    const loggedIn = isAuthenticated();
+    setIsLoggedIn(loggedIn);
+    
+    // If logged in and has profile, redirect to results
+    if (loggedIn) {
+      const saved = localStorage.getItem('userProfile');
+      if (saved) {
+        try {
+          const savedProfile = JSON.parse(saved);
+          // Check if profile is complete
+          if (savedProfile.age && savedProfile.state && savedProfile.occupation) {
+            // User is logged in and has profile, redirect to results
+            navigate('/enhanced-results');
+            return;
+          }
+        } catch (e) {
+          console.error('Failed to load profile');
+        }
+      }
+    }
     
     // Load saved profile if exists
     const saved = localStorage.getItem('userProfile');
@@ -59,7 +78,7 @@ export default function FlexibleProfilePage() {
         console.error('Failed to load profile');
       }
     }
-  }, []);
+  }, [navigate]);
 
   const validateProfile = (): boolean => {
     const newErrors: Record<string, string> = {};

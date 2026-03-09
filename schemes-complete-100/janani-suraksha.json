@@ -1,0 +1,22 @@
+{
+    "benefits":  "Rs. 1,000-1,400 for delivery",
+    "schemeId":  "janani-suraksha",
+    "eligibilityCriteria":  {
+                                "gender":  [
+                                               "Female"
+                                           ],
+                                "incomeMax":  120000
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Safe motherhood programme",
+    "ministry":  "Ministry of Health",
+    "schemeName":  "Janani Suraksha Yojana",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Healthcare"
+}

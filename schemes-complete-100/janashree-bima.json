@@ -1,0 +1,20 @@
+{
+    "benefits":  "Rs. 75,000 life cover",
+    "schemeId":  "janashree-bima",
+    "eligibilityCriteria":  {
+                                "ageMin":  18,
+                                "ageMax":  60
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Insurance for occupational groups",
+    "ministry":  "Ministry of Finance",
+    "schemeName":  "Janashree Bima Yojana",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Social Security"
+}

@@ -1,0 +1,19 @@
+{
+    "benefits":  "Free tobacco cessation counseling",
+    "schemeId":  "tobacco-control",
+    "eligibilityCriteria":  {
+                                "ageMin":  18
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Tobacco cessation support",
+    "ministry":  "Ministry of Health",
+    "schemeName":  "National Tobacco Control Programme",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Healthcare"
+}

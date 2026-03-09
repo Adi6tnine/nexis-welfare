@@ -1,0 +1,23 @@
+{
+    "benefits":  "Rs. 75,000 life cover",
+    "schemeId":  "aam-aadmi-bima",
+    "eligibilityCriteria":  {
+                                "ageMin":  18,
+                                "ageMax":  59,
+                                "occupations":  [
+                                                    "Daily Wage Worker"
+                                                ]
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Life insurance for rural landless",
+    "ministry":  "Ministry of Finance",
+    "schemeName":  "Aam Aadmi Bima Yojana",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Social Security"
+}

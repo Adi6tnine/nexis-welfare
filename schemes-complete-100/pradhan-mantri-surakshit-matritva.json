@@ -1,0 +1,21 @@
+{
+    "benefits":  "Free antenatal checkups",
+    "schemeId":  "pradhan-mantri-surakshit-matritva",
+    "eligibilityCriteria":  {
+                                "gender":  [
+                                               "Female"
+                                           ]
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Antenatal care for pregnant women",
+    "ministry":  "Ministry of Health",
+    "schemeName":  "PM Surakshit Matritva Abhiyan",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Healthcare"
+}

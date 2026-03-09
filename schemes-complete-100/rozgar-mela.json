@@ -1,0 +1,20 @@
+{
+    "benefits":  "Direct recruitment in government jobs",
+    "schemeId":  "rozgar-mela",
+    "eligibilityCriteria":  {
+                                "ageMin":  18,
+                                "ageMax":  40
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Job fairs for employment",
+    "ministry":  "Ministry of Personnel",
+    "schemeName":  "Rozgar Mela",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Employment"
+}

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Home, LayoutGrid, MessageSquare, Bell, User } from 'lucide-react';
+import { Home, LayoutGrid, MessageSquare, Bell } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toast } from './EditorialComponents';
+import { UserProfileDropdown } from './UserProfileDropdown';
 
 interface FloatingNavProps {
   onChatOpen?: () => void;
@@ -94,21 +95,10 @@ export function FloatingNav({ onChatOpen }: FloatingNavProps) {
               <span className="absolute top-0 right-0 w-2 h-2 bg-red-600 border border-[#FAF9F6]"></span>
             </button>
 
-            {/* Profile */}
-            <button
-              onClick={() => {
-                setToastMessage('Opening User Profile Settings...');
-                setTimeout(() => navigate('/profile'), 600);
-              }}
-              className={`transition-colors flex flex-col items-center gap-1 ${
-                isActive('/profile') || isActive('/adaptive-profile')
-                  ? 'text-[#059669]'
-                  : 'text-stone-400 hover:text-stone-900'
-              }`}
-              aria-label="View profile"
-            >
-              <User size={20} strokeWidth={2} className="md:w-[22px] md:h-[22px]" />
-            </button>
+            {/* Profile with Dropdown */}
+            <UserProfileDropdown 
+              isActive={isActive('/profile') || isActive('/adaptive-profile')}
+            />
           </div>
         </motion.div>
       </div>

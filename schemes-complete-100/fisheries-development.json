@@ -1,0 +1,23 @@
+{
+    "benefits":  "40-60% subsidy on fish farming",
+    "schemeId":  "fisheries-development",
+    "eligibilityCriteria":  {
+                                "occupations":  [
+                                                    "Farmer",
+                                                    "Self-Employed"
+                                                ],
+                                "ageMin":  18
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Support for fish farming",
+    "ministry":  "Ministry of Fisheries",
+    "schemeName":  "Fisheries Development Scheme",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Agriculture"
+}

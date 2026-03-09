@@ -1,0 +1,23 @@
+{
+    "benefits":  "Rs. 1.5 lakh subsidy",
+    "schemeId":  "housing-sc-st",
+    "eligibilityCriteria":  {
+                                "socialCategories":  [
+                                                         "SC",
+                                                         "ST"
+                                                     ],
+                                "ageMin":  18
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Housing subsidy for SC/ST",
+    "ministry":  "Ministry of Social Justice",
+    "schemeName":  "Housing Scheme for SC/ST",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Housing"
+}

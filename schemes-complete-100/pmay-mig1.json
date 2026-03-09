@@ -1,0 +1,20 @@
+{
+    "benefits":  "Rs. 2.35 lakh interest subsidy",
+    "schemeId":  "pmay-mig1",
+    "eligibilityCriteria":  {
+                                "ageMin":  18,
+                                "incomeMax":  1200000
+                            },
+    "documents":  [
+                      "Aadhaar Card",
+                      "Bank Account Details",
+                      "Income Certificate",
+                      "Address Proof"
+                  ],
+    "applicationProcess":  "Apply online through official portal or visit nearest Common Service Centre (CSC)",
+    "description":  "Housing for middle income group",
+    "ministry":  "Ministry of Housing",
+    "schemeName":  "PM Awas Yojana - MIG-I",
+    "officialUrl":  "https://www.india.gov.in",
+    "category":  "Housing"
+}
