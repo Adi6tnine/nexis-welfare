@@ -125,11 +125,11 @@ export default function EnhancedResultsPage() {
 
       console.log('API Response Data:', data);
 
-      // Handle both API formats: { eligible, potential, ineligible } OR { eligibleSchemes, potentialSchemes, ineligibleSchemes }
-      setEligible(data.eligible || data.eligibleSchemes || []);
-      setPotential(data.potential || data.potentialSchemes || []);
-      setIneligible(data.ineligible || data.ineligibleSchemes || []);
-      setTimeline(data.timeline || []);
+      // Handle API format: { eligibleSchemes, ineligibleSchemes }
+      setEligible(data.eligibleSchemes || []);
+      setPotential([]); // No potential schemes in current API
+      setIneligible(data.ineligibleSchemes || []);
+      setTimeline([]); // No timeline in current API
     } catch (error) {
       console.error('Error loading results:', error);
     } finally {

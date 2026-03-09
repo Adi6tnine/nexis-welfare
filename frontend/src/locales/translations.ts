@@ -104,6 +104,7 @@ export interface Translations {
     btnChat: string;
     detailsReq: string;
     detailsLink: string;
+    eligible: string;
   };
   landing: {
     title: string;

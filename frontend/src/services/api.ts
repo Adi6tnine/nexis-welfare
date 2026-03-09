@@ -46,6 +46,7 @@ apiClient.interceptors.response.use(
 );
 
 export interface UserProfile {
+  userId?: string;
   age: number;
   state: string;
   occupation: string;
